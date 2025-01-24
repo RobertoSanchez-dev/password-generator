@@ -1,10 +1,9 @@
+import React, { useState } from "react";
 import Head from "next/head";
-import { useState } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
-import { log } from "console";
 
-export default function Home() {
-  let chars: { [key: string]: string } = {
+const PasswordGenerator: React.FC = () => {
+  const chars: { [key: string]: string } = {
     minus: "abcdefghijklmnopqrstuvwxyz",
     mayus: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
     number: "0123456789",
@@ -14,8 +13,9 @@ export default function Home() {
   const [password, setPassword] = useState("");
   const [length, setLength] = useState(12);
   const [selectedCheckboxes, setSelectedCheckboxes] = useState<string[]>([]);
+  const [savedPasswords, setSavedPasswords] = useState<string[]>([]);
 
-  const handleCheckboxChange = (event: any) => {
+  const handleCheckboxChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { value, checked } = event.target;
 
     setSelectedCheckboxes((prevSelected) =>
@@ -27,16 +27,15 @@ export default function Home() {
 
   const generatePassword = (len: number) => {
     let newPassword = "";
-    const filteredChars = Object.entries(chars) // Convertir el objeto a un array de pares [clave, valor]
-      .filter(([key]) => selectedCheckboxes.includes(key)) // Filtrar las claves seleccionadas
-      .map(([_, value]) => value) // Obtener solo los valores (cadenas de caracteres)
-      .join(""); // Combinar todos los valores en una sola cadena
+    const filteredChars = Object.entries(chars)
+      .filter(([key]) => selectedCheckboxes.includes(key))
+      .map(([_, value]) => value)
+      .join("");
 
     for (let i = 0; i < len; i++) {
       const randomIndex = Math.floor(Math.random() * filteredChars.length);
       newPassword += filteredChars[randomIndex];
     }
-    console.log("Nueva contraseña generada:", newPassword);
     setPassword(newPassword);
   };
 
@@ -46,106 +45,129 @@ export default function Home() {
     generatePassword(newLength);
   };
 
+  const savePassword = () => {
+    if (savedPasswords.includes(password)) {
+      return;
+    }
+    setSavedPasswords([...savedPasswords, password]);
+  };
+
   return (
-    <div className="d-flex justify-content-center vh-100">
+    <div className="d-flex justify-content-center align-items-center vh-100">
       <Head>
         <title>Password Generator</title>
         <meta name="description" content="Generate a random password" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <div className="container" style={{ maxWidth: "700px" }}>
-        <h1 className="text-center mt-5">
-          Genera una contraseña aleatoria y segura
-        </h1>
-        <main className="d-flex flex-column">
-          <div className="mb-3">
-            <div className="input-group flex-nowrap">
-              <input
-                type="text"
-                className="form-control"
-                placeholder="Tu contraseña"
-                aria-describedby="addon-wrapping"
-                value={password}
-                readOnly
-              />
+      <div className="container" style={{ maxWidth: "900px" }}>
+        <h1 className="text-center mt-2">Genera una contraseña segura</h1>
+        <div className="row">
+          <div className="col-md-6">
+            <div className="card p-4">
+              <div className="mb-3">
+                <div className="input-group">
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder="Tu contraseña"
+                    value={password}
+                    readOnly
+                  />
+                  <button
+                    className="btn btn-outline-secondary"
+                    onClick={() => generatePassword(length)}
+                  >
+                    Cambiar
+                  </button>
+                </div>
+              </div>
+              <h3>Longitud de la contraseña</h3>
+              <div className="d-flex align-items-center mb-3">
+                <input
+                  type="text"
+                  className="form-control"
+                  style={{ width: "60px" }}
+                  value={length}
+                  readOnly
+                />
+                <input
+                  type="range"
+                  className="form-range mx-3 flex-grow-1"
+                  min="1"
+                  max="50"
+                  value={length}
+                  onChange={handleSliderChange}
+                />
+              </div>
+              <div className="mb-3">
+                <div className="form-check">
+                  <input
+                    type="checkbox"
+                    className="form-check-input"
+                    value="mayus"
+                    onChange={handleCheckboxChange}
+                  />
+                  <label className="form-check-label">Mayúsculas</label>
+                </div>
+                <div className="form-check">
+                  <input
+                    type="checkbox"
+                    className="form-check-input"
+                    value="minus"
+                    onChange={handleCheckboxChange}
+                  />
+                  <label className="form-check-label">Minúsculas</label>
+                </div>
+                <div className="form-check">
+                  <input
+                    type="checkbox"
+                    className="form-check-input"
+                    value="number"
+                    onChange={handleCheckboxChange}
+                  />
+                  <label className="form-check-label">Números</label>
+                </div>
+                <div className="form-check">
+                  <input
+                    type="checkbox"
+                    className="form-check-input"
+                    value="simbol"
+                    onChange={handleCheckboxChange}
+                  />
+                  <label className="form-check-label">Símbolos</label>
+                </div>
+              </div>
+              <div className="d-flex justify-content-around">
+                <button
+                  className="btn btn-primary mx-2"
+                  onClick={() => generatePassword(length)}
+                >
+                  Generar contraseña
+                </button>
+                <button
+                  className="btn btn-primary mx-2"
+                  onClick={savePassword}
+                >
+                  Guardar
+                </button>
+              </div>
             </div>
           </div>
-          <h3>Longitud de la contraseña</h3>
-          <div className="d-flex justify-content-center">
-            <div className="d-flex col-8 mb-3">
-              <input type="text" className="col-2 m-auto" value={length} />
-              <input
-                type="range"
-                className="form-range mx-3 align-self-center"
-                min="1"
-                max="50"
-                id="customRange"
-                value={length}
-                onChange={handleSliderChange}
-              />
-            </div>
-            <div className="d-flex flex-column col-4 justify-content-end">
-              <div className="form-check mb-2">
-                <input
-                  className="form-check-input"
-                  type="checkbox"
-                  value="mayus"
-                  id="MayusCheck"
-                  onChange={handleCheckboxChange}
-                />
-                <label className="form-check-label" htmlFor="MayusCheck">
-                  Mayusculas
-                </label>
-              </div>
-              <div className="form-check mb-2">
-                <input
-                  className="form-check-input"
-                  type="checkbox"
-                  value="minus"
-                  id="MinusCheck"
-                  onChange={handleCheckboxChange}
-                />
-                <label className="form-check-label" htmlFor="MinusCheck">
-                  Minusculas
-                </label>
-              </div>
-              <div className="form-check mb-2">
-                <input
-                  className="form-check-input"
-                  type="checkbox"
-                  value="number"
-                  id="numberCheck"
-                  onChange={handleCheckboxChange}
-                />
-                <label className="form-check-label" htmlFor="numberCheck">
-                  Números
-                </label>
-              </div>
-              <div className="form-check mb-2">
-                <input
-                  className="form-check-input"
-                  type="checkbox"
-                  value="simbol"
-                  id="simbolCheck"
-                  onChange={handleCheckboxChange}
-                />
-                <label className="form-check-label" htmlFor="simbolCheck">
-                  Símbolos
-                </label>
-              </div>
-            </div>
+          <div className="col-md-6">
+            <h3>Contraseñas guardadas</h3>
+            <ul className="list-group">
+              {savedPasswords.map((pwd, index) => (
+                <li className="list-group-item" key={index}>
+                  {pwd}
+                </li>
+              ))}
+            </ul>
           </div>
-          <div>
-            <button
-              className="btn btn-primary mt-3 d-flex justify-content-center mx-auto"
-              onClick={(event) => handleCheckboxChange(event)}
-            >
-              Generate Password
-            </button>
-          </div>
-        </main>
+        </div>
       </div>
     </div>
   );
-}
+};
+
+export default PasswordGenerator;
